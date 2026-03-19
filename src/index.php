@@ -1,22 +1,29 @@
 <?php
 
-// Importamos os nossos dois Controllers
+// Importamos os nossos três Controllers
 require_once __DIR__ . '/Controllers/MedicoController.php';
 require_once __DIR__ . '/Controllers/AgendamentoController.php';
+require_once __DIR__ . '/Controllers/AdminController.php';
 
 use Controllers\MedicoController;
 use Controllers\AgendamentoController;
+use Controllers\AdminController;
 
-// O Gerente da Porta (Roteador)
-// Ele olha na URL se o usuário quer 'agendar' ou apenas ver a tela padrão
+// O Gerente da Porta
 $acao = isset($_GET['acao']) ? $_GET['acao'] : 'listar';
 
 if ($acao === 'agendar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Se clicar no botão de horário, chama o Garçom de Agendamentos para salvar no banco!
+    // Rota: Salvar agendamento
     $controller = new AgendamentoController();
     $controller->salvar();
+
+} elseif ($acao === 'painel') {
+    // NOVA ROTA: Acessar o Dashboard da Clínica
+    $controller = new AdminController();
+    $controller->painel();
+
 } else {
-    // Se for só abrir a página, chama o Garçom de Médicos para mostrar a tela!
+    // Rota Padrão: Mostrar a tela bonita para o paciente
     $controller = new MedicoController();
     $controller->listarDisponibilidade();
 }

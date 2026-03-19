@@ -40,5 +40,27 @@ class Agendamento {
 
         return $sucesso; // Retorna VERDADEIRO se salvou, ou FALSO se deu erro
     }
+    /**
+     * Função para o Painel: Busca todos os agendamentos de uma clínica em uma data específica
+     */
+    public function getAgendamentosPorData($clinica_id, $data) {
+        // Fazemos um JOIN (junção) para pegar o nome do paciente E o nome do médico
+        $sql = "
+            SELECT a.id, a.hora_inicio, a.paciente_nome, a.status, m.nome as medico_nome
+            FROM agendamentos a
+            JOIN medicos m ON a.medico_id = m.id
+            WHERE m.clinica_id = :clinica_id 
+            AND a.data_consulta = :data
+            ORDER BY a.hora_inicio ASC
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'clinica_id' => $clinica_id,
+            'data' => $data
+        ]);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

@@ -1,29 +1,42 @@
 <?php
+
 namespace Controllers;
 
+require_once __DIR__ . '/../Models/Agendamento.php';
 use Models\Agendamento;
 
 class AgendamentoController {
     
     public function salvar() {
-        // 1. Pegamos os dados que o usuário preencheu no formulário
-        $medico_id = $_POST['medico_id'] ?? null;
-        $data_hora = $_POST['data_hora'] ?? null;
-        $paciente_nome = "Paciente Teste"; // Depois podemos pegar de um login
+        // Verifica se os dados vieram pelo formulário que está na View
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            
+            // 1. Pegamos os dados EXATOS que os botões (inputs hidden) enviaram
+            $medico_id = $_POST['medico_id'] ?? null;
+            $data_consulta = $_POST['data_consulta'] ?? null;
+            $hora_inicio = $_POST['hora_inicio'] ?? null;
+            
+            // 2. Simulamos um nome de paciente
+            $paciente_nome = "Paciente VIP " . rand(100, 999);
 
-        if ($medico_id && $data_hora) {
-            // 2. Chamamos o Model (o "Arquivo Morto") para salvar
-            $model = new Agendamento();
-            $sucesso = $model->salvarAgendamento($medico_id, $paciente_nome, $data_hora);
+            // Verifica se não está faltando nada
+            if ($medico_id && $data_consulta && $hora_inicio) {
+                
+                // 3. Chamamos o "Cozinheiro" (Model) e usamos a função com o NOME CORRETO
+                $model = new Agendamento();
+                $sucesso = $model->marcarConsulta($medico_id, $data_consulta, $hora_inicio, $paciente_nome);
 
-            if ($sucesso) {
-                echo "<h2>✅ Agendamento realizado com sucesso!</h2>";
-                echo "<a href='index.php'>Voltar para a lista</a>";
+                if ($sucesso) {
+                    // Se salvou no banco, volta para a tela inicial mostrando o aviso verde!
+                    header("Location: index.php?data=" . $data_consulta . "&sucesso=1");
+                    exit;
+                } else {
+                    echo "<h1>Erro ao salvar no banco de dados.</h1>";
+                }
             } else {
-                echo "<h2>❌ Erro ao salvar no banco de dados.</h2>";
+                echo "<h1>Dados incompletos! O botão não enviou todas as informações.</h1>";
             }
-        } else {
-            echo "<h2>⚠️ Dados incompletos!</h2>";
         }
     }
 }
+?>
