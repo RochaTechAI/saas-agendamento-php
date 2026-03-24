@@ -62,5 +62,23 @@ class Agendamento {
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    /**
+     * Função para o Painel: Atualiza o status da consulta (Concluir ou Cancelar)
+     */
+    public function atualizarStatus($agendamento_id, $novo_status, $clinica_id) {
+        // Usamos um JOIN por segurança: garante que a recepcionista só pode alterar
+        // consultas que pertencem aos médicos da própria clínica dela!
+        $sql = "UPDATE agendamentos a
+                JOIN medicos m ON a.medico_id = m.id
+                SET a.status = :status
+                WHERE a.id = :id AND m.clinica_id = :clinica_id";
+        
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            'status'     => $novo_status,
+            'id'         => $agendamento_id,
+            'clinica_id' => $clinica_id
+        ]);
+    }
 }
 ?>
