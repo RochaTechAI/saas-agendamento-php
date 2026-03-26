@@ -22,16 +22,18 @@ class AgendamentoController {
             // Verifica se não está faltando nada
             if ($medico_id && $data_consulta && $hora_inicio) {
                 
-                // 3. Chamamos o "Cozinheiro" (Model) e usamos a função com o NOME CORRETO
+                // 3. Chamamos o "Cozinheiro" (Model) com a função BLINDADA
                 $model = new Agendamento();
                 $sucesso = $model->marcarConsulta($medico_id, $data_consulta, $hora_inicio, $paciente_nome);
 
                 if ($sucesso) {
-                    // Se salvou no banco, volta para a tela inicial mostrando o aviso verde!
+                    // Se salvou no banco, volta para a tela inicial mostrando o aviso VERDE!
                     header("Location: index.php?data=" . $data_consulta . "&sucesso=1");
                     exit;
                 } else {
-                    echo "<h1>Erro ao salvar no banco de dados.</h1>";
+                    // Se deu falso (alguém pegou a vaga antes), manda o aviso VERMELHO!
+                    header("Location: index.php?data=" . $data_consulta . "&erro_ocupado=1");
+                    exit;
                 }
             } else {
                 echo "<h1>Dados incompletos! O botão não enviou todas as informações.</h1>";

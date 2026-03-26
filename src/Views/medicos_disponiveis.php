@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- IMPORTANDO O VUE.JS DIRETO DA NUVEM -->
+    <!-- VUE.JS -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
     <style>
@@ -26,7 +26,6 @@
 </head>
 <body class="py-5">
 
-<!-- Alerta de Sucesso do PHP -->
 <?php if (isset($_GET['sucesso'])): ?>
     <div class="container max-w-4xl" style="max-width: 900px;">
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center shadow-lg border-0 rounded-4 mb-4 p-4" style="background: #ecfdf5; color: #065f46;" role="alert">
@@ -39,17 +38,26 @@
         </div>
     </div>
 <?php endif; ?>
+<!-- Alerta de Erro: Double Booking (Concorrência) -->
+<?php if (isset($_GET['erro_ocupado'])): ?>
+    <div class="container max-w-4xl" style="max-width: 900px;">
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center shadow-lg border-0 rounded-4 mb-4 p-4" style="background: #fef2f2; color: #991b1b;" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-1 me-3 text-danger"></i>
+            <div>
+                <h4 class="alert-heading fw-bold mb-1">Poxa, você chegou 1 segundo atrasado!</h4>
+                <p class="mb-0">Outro paciente acabou de reservar este exato horário. Por favor, escolha outro disponível abaixo.</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+<?php endif; ?>
 
-<!-- A CAIXA MÁGICA DO VUE.JS -->
 <div id="app" class="container max-w-4xl" style="max-width: 900px;">
-    
     <div class="glass-header p-5 mb-5 text-center">
         <h1 class="mb-4" style="font-weight: 800; letter-spacing: -1px; font-size: 2.5rem;">
             <i class="bi bi-heart-pulse-fill text-danger"></i> MedSaaS <span style="color: #60a5fa;">Premium</span>
         </h1>
-        <p class="mb-4 fs-5 text-light opacity-75">Agende sua consulta de forma rápida e segura.</p>
         
-        <!-- Formulário Reativo (@submit.prevent intercepta o botão e não deixa a página piscar) -->
         <form @submit.prevent="buscarHorarios" class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 mx-auto" style="max-width: 600px;">
             <div class="input-group shadow-lg rounded-4 p-1" style="background: rgba(255,255,255,0.2);">
                 <span class="input-group-text bg-transparent border-0 ps-4 text-white"><i class="bi bi-calendar-event-fill fs-5"></i></span>
@@ -62,92 +70,46 @@
         </form>
     </div>
 
-    <!-- Resultados Reativos -->
     <div class="row justify-content-center">
         <div class="col-12">
-            
-            <!-- Mostra um loading enquanto a API do PHP não responde -->
             <div v-if="carregando" class="text-center p-5">
                 <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status"></div>
                 <h4 class="text-white mt-3 fw-bold">Consultando API...</h4>
             </div>
 
-            <!-- Se a API não achar médicos livres -->
             <div v-else-if="medicos.length === 0" class="text-center p-5 rounded-4 border-0" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
                 <i class="bi bi-calendar-x text-white opacity-50" style="font-size: 5rem;"></i>
                 <h3 class="fw-bold text-white mt-3">Nenhum horário livre</h3>
-                <p class="text-white opacity-75 fs-5">Não há médicos disponíveis nesta data. Tente buscar outro dia.</p>
             </div>
 
-            <!-- Loop Vue (v-for) que cria os cards dos médicos baseados no JSON -->
             <div v-else>
-                <div v-for="medico in medicos" :key="medico.id" class="card doctor-card p-4 p-md-5 mb-5">
-                    <div class="d-flex flex-column align-items-center text-center mb-4 pb-4 border-bottom">
-                        <h2 class="fw-bolder mb-2" style="color: #0f172a; font-size: 2.2rem;">{{ medico.nome }}</h2>
-                        <div class="badge px-4 py-2 rounded-pill" style="background: #e0e7ff; color: var(--primary); font-size: 1.1rem; font-weight: 600;">
-                            <i class="bi bi-clipboard2-pulse me-1"></i> {{ medico.especialidade }}
-                        </div>
-                    </div>
-                    
-                    <h5 class="fw-bold mb-4 text-center" style="color: #475569;"><i class="bi bi-clock-history me-2 text-primary"></i> Selecione um horário:</h5>
-                    
-                    <div class="row g-3 justify-content-center">
-                        <div v-for="horario in medico.horarios_disponiveis" :key="horario" class="col-6 col-md-3">
-                            <form method="POST" action="index.php?acao=agendar" class="m-0">
-                                <input type="hidden" name="medico_id" :value="medico.id">
-                                <input type="hidden" name="data_consulta" :value="dataSelecionada">
-                                <input type="hidden" name="hora_inicio" :value="horario">
-                                <button type="submit" class="time-slot-btn">{{ horario }}</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                <!-- OLHA AQUI A MÁGICA DA COMPONENTIZAÇÃO! -->
+                <doctor-card 
+                    v-for="medicoItem in medicos" 
+                    :key="medicoItem.id" 
+                    :medico="medicoItem" 
+                    :data-consulta="dataSelecionada">
+                </doctor-card>
             </div>
-
         </div>
     </div>
 </div>
 
-<!-- O SCRIPT JAVASCRIPT DO VUE -->
+<!-- INJEÇÃO DE VARIÁVEIS DO PHP PARA O JS E IMPORTAÇÃO DOS ARQUIVOS -->
 <script>
-    const { createApp } = Vue;
-
-    createApp({
-        data() {
-            return {
-                dataSelecionada: '<?= date('Y-m-d', strtotime('+1 day')) ?>',
-                medicos: new Array(), // Array vazio seguro
-                carregando: false
-            }
-        },
-        mounted() {
-            // Quando a página carrega, já busca os horários de amanhã
-            this.buscarHorarios();
-        },
-        methods: {
-            async buscarHorarios() {
-                this.carregando = true; // Liga o ícone girando
-                
-                try {
-                    // Substitui a chamada do PHP (Postman)
-                    const url = `index.php?acao=api_disponibilidade&data=${this.dataSelecionada}`;
-                    const resposta = await fetch(url);
-                    
-                    if (resposta.status === 200) {
-                        const json = await resposta.json();
-                        this.medicos = json.medicos; // Preenche a tela
-                    } else {
-                        this.medicos = new Array();
-                    }
-                } catch (erro) {
-                    console.error("Erro na API:", erro);
-                    this.medicos = new Array();
-                } finally {
-                    this.carregando = false; // Desliga o ícone girando
-                }
-            }
-        }
-    }).mount('#app'); // Conecta o Vue na "caixa mágica" com id="app"
+    window.DATA_INICIAL = '<?= date('Y-m-d', strtotime('+1 day')) ?>';
 </script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/app.js"></script>
+<!-- INJEÇÃO DE VARIÁVEIS DO PHP PARA O JS E IMPORTAÇÃO DOS ARQUIVOS -->
+<script>
+    window.DATA_INICIAL = '<?= date('Y-m-d', strtotime('+1 day')) ?>';
+</script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/app.js"></script>
+
+<!-- AQUI ESTÁ O SCRIPT DO BOOTSTRAP QUE FALTAVA PARA O (X) FUNCIONAR! -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
