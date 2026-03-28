@@ -1,14 +1,15 @@
-// Arquivo: src/assets/js/app.js
-
 const { createApp } = Vue;
 
 const app = createApp({
     data() {
         return {
-            // Pegamos a data inicial injetada pelo PHP no HTML
             dataSelecionada: window.DATA_INICIAL || '',
-            medicos:[],
-            carregando: false
+            medicos: new Array(),
+            carregando: false,
+            
+            // Dados para o Modal Pop-up
+            medicoSelecionado: null,
+            horarioSelecionado: ''
         }
     },
     mounted() {
@@ -17,18 +18,20 @@ const app = createApp({
     methods: {
         async buscarHorarios() {
             this.carregando = true;
-            // Chamamos o nosso Service isolado (Código limpo!)
             this.medicos = await ApiService.getDisponibilidade(this.dataSelecionada);
             this.carregando = false;
+        },
+        
+        prepararAgendamento(medico, horario) {
+            this.medicoSelecionado = medico;
+            this.horarioSelecionado = horario;
+            const modal = new bootstrap.Modal(document.getElementById('modalAgendamento'));
+            modal.show();
         }
     }
 });
 
-// ==========================================
-// COMPONENTE: CARTÃO DO MÉDICO (<doctor-card>)
-// ==========================================
 app.component('doctor-card', {
-    // Props são as propriedades que o componente recebe de fora
     props: ['medico', 'dataConsulta'],
     template: `
         <div class="card doctor-card p-4 p-md-5 mb-5">
@@ -38,22 +41,16 @@ app.component('doctor-card', {
                     <i class="bi bi-clipboard2-pulse me-1"></i> {{ medico.especialidade }}
                 </div>
             </div>
-            
             <h5 class="fw-bold mb-4 text-center" style="color: #475569;"><i class="bi bi-clock-history me-2 text-primary"></i> Selecione um horário:</h5>
-            
             <div class="row g-3 justify-content-center">
                 <div v-for="horario in medico.horarios_disponiveis" :key="horario" class="col-6 col-md-3">
-                    <form method="POST" action="index.php?acao=agendar" class="m-0">
-                        <input type="hidden" name="medico_id" :value="medico.id">
-                        <input type="hidden" name="data_consulta" :value="dataConsulta">
-                        <input type="hidden" name="hora_inicio" :value="horario">
-                        <button type="submit" class="time-slot-btn">{{ horario }}</button>
-                    </form>
+                    <button type="button" class="time-slot-btn" @click="$emit('abrir-modal', medico, horario)">
+                        {{ horario }}
+                    </button>
                 </div>
             </div>
         </div>
     `
 });
 
-// Monta o Vue na tela
 app.mount('#app');
