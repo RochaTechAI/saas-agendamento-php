@@ -1,0 +1,32 @@
+# Ambiente e segredos
+.env
+*.env.local
+
+# Dependências PHP
+vendor/
+src/vendor/
+composer.lock
+src/composer.lock
+src/composer.phar
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+tmp/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker volumes locais (dados do MySQL)
+db_data/

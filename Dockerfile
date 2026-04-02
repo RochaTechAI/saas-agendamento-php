@@ -1,8 +1,11 @@
-# Pega a imagem oficial do PHP 8.2 com o servidor Apache embutido
 FROM php:8.2-apache
 
-# Instala as extensões PDO e pdo_mysql (Necessárias para o Banco de Dados)
+# Extensões necessárias para banco de dados
 RUN docker-php-ext-install pdo pdo_mysql
 
-# Ativa o módulo de reescrita de URL do Apache (Para termos URLs bonitas no MVC)
+# Ativa mod_rewrite para o .htaccess funcionar
 RUN a2enmod rewrite
+
+# Configura o Apache para servir a partir de /public (segurança: arquivos PHP
+# fora de public/ ficam inacessíveis pela web)
+COPY docker/apache.conf /etc/apache2/sites-enabled/000-default.conf

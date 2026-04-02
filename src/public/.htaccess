@@ -1,0 +1,12 @@
+Options -Indexes
+
+# Bloqueia acesso a arquivos sensíveis
+<FilesMatch "\.(env|log|sql|sh|md|json|lock)$">
+    Require all denied
+</FilesMatch>
+
+# Redireciona tudo para index.php (Front Controller Pattern)
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
