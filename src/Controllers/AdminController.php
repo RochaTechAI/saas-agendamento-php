@@ -20,7 +20,8 @@ class AdminController {
         // Manda os dados para a tela (View) do Painel
         require_once __DIR__ . '/../Views/dashboard.php';
     }
-// Recebe o clique do botão Concluir ou Cancelar
+
+    // Recebe o clique do botão Concluir ou Cancelar no Dashboard
     public function alterarStatus() {
         // Pega os dados que vieram pela URL (Link do botão)
         $id_agendamento = $_GET['id'] ?? null;
