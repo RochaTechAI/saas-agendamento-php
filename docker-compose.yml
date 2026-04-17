@@ -1,4 +1,7 @@
+version: '3.8'
+
 services:
+  # Nosso Servidor Web (PHP)
   app:
     build: .
     ports:
@@ -10,13 +13,14 @@ services:
     depends_on:
       - db
 
+  # Nosso Banco de Dados (MySQL)
   db:
     image: mysql:8.0
     ports:
-      - "3307:3306"
+      - "3307:3306" # AQUI ESTÁ A NOSSA CORREÇÃO (PORTA 3307!)
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: saas_db
     volumes:
       - db_data:/var/lib/mysql
 
