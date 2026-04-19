@@ -28,6 +28,11 @@ $router->add('GET', 'api_disponibilidade', function () {
     (new ApiController())->getDisponibilidade();
 });
 
+// NOVA ROTA: Buscar médicos pro Dropdown do Vue
+$router->add('GET', 'api_medicos', function () {
+    (new ApiController())->getMedicosClinica();
+});
+
 $router->add('POST', 'agendar', function () {
     (new AgendamentoController())->salvar();
 });
@@ -46,20 +51,25 @@ $router->add('GET', 'logout', function () {
 
 // ── Rotas protegidas (requerem autenticação) ──────────────────────────────────
 $router->add('GET', 'painel', function () {
-    if (!isset($_SESSION['usuario_id'])) {
-        header('Location: index.php?acao=login');
-        exit;
-    }
+    if (!isset($_SESSION['usuario_id'])) { header('Location: index.php?acao=login'); exit; }
     (new AdminController())->painel();
 });
 
 $router->add('GET', 'atualizar_status', function () {
-    if (!isset($_SESSION['usuario_id'])) {
-        header('Location: index.php?acao=login');
-        exit;
-    }
+    if (!isset($_SESSION['usuario_id'])) { header('Location: index.php?acao=login'); exit; }
     (new AdminController())->alterarStatus();
 });
 
-// ── Despacha a requisição ─────────────────────────────────────────────────────
+$router->add('GET', 'painel_medicos', function () {
+    if (!isset($_SESSION['usuario_id'])) { header('Location: index.php?acao=login'); exit; }
+    (new AdminController())->medicos();
+});
+
+$router->add('POST', 'salvar_medico', function () {
+    if (!isset($_SESSION['usuario_id'])) { header('Location: index.php?acao=login'); exit; }
+    (new AdminController())->salvarMedico();
+});
+
 $router->dispatch();
+
+?>

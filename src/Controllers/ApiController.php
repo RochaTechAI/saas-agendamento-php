@@ -7,27 +7,22 @@ use Models\Medico;
 
 class ApiController {
     
-    // Endpoint para buscar a disponibilidade em formato JSON
     public function getDisponibilidade() {
-        // 1. Dizemos para quem chamou (Postman/Aplicativo) que a resposta será em JSON
         header('Content-Type: application/json; charset=utf-8');
-        
         $clinica_id = 1; 
         
-        // 2. Pegamos a data da URL
         $data_desejada = isset($_GET['data']) ? htmlspecialchars(strip_tags($_GET['data'])) : date('Y-m-d', strtotime('+1 day'));
+        
+        // Pegando o filtro do médico que o Vue.js enviar
+        $medico_id = (isset($_GET['medico']) && $_GET['medico'] !== '') ? (int) $_GET['medico'] : null;
 
-        // 3. Vamos no Cérebro (Model) buscar os dados puros
         $medicoModel = new Medico();
-        $medicos = $medicoModel->getDisponibilidade($clinica_id, $data_desejada);
+        $medicos = $medicoModel->getDisponibilidade($clinica_id, $data_desejada, $medico_id);
 
-        // 4. Transformamos os dados do PHP em JSON e devolvemos na tela!
         if (empty($medicos)) {
-            // Se não tiver médico, devolve um erro 404 (Not Found)
             http_response_code(404);
-            echo json_encode(["mensagem" => "Nenhum médico disponível nesta data."]);
+            echo json_encode(["mensagem" => "Nenhum médico disponível."]);
         } else {
-            // Se tiver, devolve com sucesso (200 OK)
             http_response_code(200);
             echo json_encode([
                 "data_buscada" => $data_desejada,
@@ -35,6 +30,18 @@ class ApiController {
                 "medicos" => $medicos
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
+    }
+
+    // NOVA ROTA: Retorna todos os médicos para o dropdown da tela do paciente
+    public function getMedicosClinica() {
+        header('Content-Type: application/json; charset=utf-8');
+        $clinica_id = 1;
+        
+        $medicoModel = new Medico();
+        $medicos = $medicoModel->listarPorClinica($clinica_id);
+        
+        http_response_code(200);
+        echo json_encode($medicos, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 }
 ?>
