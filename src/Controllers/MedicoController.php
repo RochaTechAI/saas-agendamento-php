@@ -2,26 +2,30 @@
 
 namespace Controllers;
 
-require_once __DIR__ . '/../Models/Medico.php';
-use Models\Medico;
+require_once __DIR__ . '/../Models/Clinica.php';
+use Models\Clinica;
 
 class MedicoController {
     
     public function listarDisponibilidade() {
-        $clinica_id = 1;
-        
-        // SEGURANÇA EXTRA: Sanitização de Dados (Limpando o que vem da URL)
-        // Se houver alguma tentativa de injetar código HTML ou SQL na data, nós limpamos.
-        if (isset($_GET['data'])) {
-            // Remove qualquer sujeira ou código malicioso
-            $data_limpa = htmlspecialchars(strip_tags($_GET['data']));
-            $data_desejada = $data_limpa;
-        } else {
-            $data_desejada = date('Y-m-d', strtotime('+1 day'));
+        // Pega o 'slug' da URL (Ex: ?c=vida-saudavel). Se não vier, assume a Vida Saudável para não quebrar testes diretos
+        $slug = $_GET['c'] ?? 'vida-saudavel';
+
+        $clinicaModel = new Clinica();
+        $clinica = $clinicaModel->buscarPorSlug($slug);
+
+        // Se tentarem acessar um link de clínica que não existe, bloqueia!
+        if (!$clinica) {
+            die("<body style='background:#020812; color:#fff; text-align:center; padding:100px; font-family:sans-serif;'>
+                <h1>🏥 Clínica não encontrada</h1>
+                <p style='color:#7aa0c0'>Verifique o link de acesso fornecido pelo seu médico.</p>
+                </body>");
         }
 
-        $medicoModel = new Medico();
-        $medicos = $medicoModel->getDisponibilidade($clinica_id, $data_desejada);
+        // Variáveis que vamos enviar para a Tela!
+        $clinica_id = $clinica['id'];
+        $clinica_nome = $clinica['nome'];
+        $clinica_slug = $clinica['slug'];
 
         require_once __DIR__ . '/../Views/medicos_disponiveis.php';
     }

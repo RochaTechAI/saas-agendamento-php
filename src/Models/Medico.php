@@ -23,7 +23,7 @@ class Medico {
 
         $params =['clinica_id' => $clinica_id, 'dia_semana' => $dia_da_semana];
 
-        // MÁGICA: Se o paciente escolheu um médico no filtro, adicionamos na busca!
+        // Se o paciente escolheu um médico no filtro, adicionamos na busca!
         if (!empty($medico_id_filtro)) {
             $sql .= " AND m.id = :medico_id";
             $params['medico_id'] = $medico_id_filtro;

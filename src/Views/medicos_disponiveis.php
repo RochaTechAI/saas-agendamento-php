@@ -400,7 +400,7 @@
 </div>
 
 <script>window.DATA_INICIAL = '<?= date('Y-m-d', strtotime('+1 day')) ?>';</script>
-<script src="assets/js/api.js?v=3"></script>
+<script src="assets/js/api.js?v=4"></script>
 <script>
 const { createApp } = Vue;
 
@@ -409,7 +409,7 @@ createApp({
         return {
             dataSelecionada: window.DATA_INICIAL || '',
             medicoFiltro: '', // O ID do médico escolhido no dropdown
-            medicosLista: [], // A lista de médicos que vem do banco
+            medicosLista:[], // A lista de médicos que vem do banco
             medicos:[],
             carregando: false,
             buscou: false,

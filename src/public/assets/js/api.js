@@ -1,7 +1,7 @@
 const ApiService = {
+    // Busca os horários livres, agora aceitando o ID do médico como filtro!
     async getDisponibilidade(dataDesejada, medicoId = '') {
         try {
-            // Manda o ID do médico na URL pro PHP filtrar
             const resposta = await fetch(`index.php?acao=api_disponibilidade&data=${dataDesejada}&medico=${medicoId}`);
             
             if (resposta.status === 200) {
@@ -9,20 +9,21 @@ const ApiService = {
                 return json.medicos; 
             }
             return[];
+            
         } catch (erro) {
-            console.error("Erro Crítico:", erro);
+            console.error("Erro Crítico ao comunicar com o Backend:", erro);
             return[];
         }
     },
 
-    // Busca todos os médicos da clínica
+    // Busca a lista de todos os médicos para popular a caixinha de Seleção
     async getMedicosLista() {
         try {
             const resposta = await fetch(`index.php?acao=api_medicos`);
             if (resposta.status === 200) {
                 return await resposta.json();
             }
-            return[];
+            return [];
         } catch (erro) {
             return[];
         }
