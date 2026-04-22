@@ -640,7 +640,7 @@ $agendados  = count(array_filter($agendamentos, fn($a) => $a['status'] === 'agen
 $concluidos = count(array_filter($agendamentos, fn($a) => $a['status'] === 'concluido'));
 $cancelados = count(array_filter($agendamentos, fn($a) => $a['status'] === 'cancelado'));
 $dataPtBR   = date('d/m/Y', strtotime($data_desejada));
-$diaSemana  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][date('w', strtotime($data_desejada))];
+$diaSemana  =['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][date('w', strtotime($data_desejada))];
 ?>
 
 <!-- SIDEBAR -->
@@ -658,6 +658,12 @@ $diaSemana  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']
         <a href="index.php?acao=painel" class="nav-item active">
             <i class="bi bi-calendar2-heart"></i> Agenda do Dia
         </a>
+        
+        <!-- O NOVO LINK DOS MÉDICOS QUE FALTAVA! -->
+        <a href="index.php?acao=painel_medicos" class="nav-item">
+            <i class="bi bi-people"></i> Equipe Médica
+        </a>
+        
         <a href="index.php" target="_blank" class="nav-item">
             <i class="bi bi-globe2"></i> Site Público
         </a>

@@ -1,11 +1,10 @@
 FROM php:8.2-apache
 
-# Extensões necessárias para banco de dados
+RUN apt-get update && apt-get install -y git unzip
 RUN docker-php-ext-install pdo pdo_mysql
-
-# Ativa mod_rewrite para o .htaccess funcionar
 RUN a2enmod rewrite
 
-# Configura o Apache para servir a partir de /public (segurança: arquivos PHP
-# fora de public/ ficam inacessíveis pela web)
-COPY docker/apache.conf /etc/apache2/sites-enabled/000-default.conf
+# MÁGICA: Muda a pasta raiz do Apache direto para a pasta "public"
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf

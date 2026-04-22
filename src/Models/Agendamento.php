@@ -15,6 +15,7 @@ class Agendamento {
 
     public function marcarConsulta($medico_id, $data_consulta, $hora_inicio, $paciente_nome, $paciente_email, $paciente_telefone) {
         $hora_fim = date('H:i:s', strtotime($hora_inicio . ' + 30 minutes'));
+        $token = bin2hex(random_bytes(16));
 
         try {
             $this->db->beginTransaction();
@@ -28,8 +29,8 @@ class Agendamento {
                 return false; 
             }
 
-            $sqlInsert = "INSERT INTO agendamentos (medico_id, data_consulta, hora_inicio, hora_fim, paciente_nome, paciente_email, paciente_telefone, status) 
-                          VALUES (:medico_id, :data_consulta, :hora_inicio, :hora_fim, :paciente_nome, :paciente_email, :paciente_telefone, 'agendado')";
+            $sqlInsert = "INSERT INTO agendamentos (medico_id, data_consulta, hora_inicio, hora_fim, paciente_nome, paciente_email, paciente_telefone, status, token_cancelamento) 
+                          VALUES (:medico_id, :data_consulta, :hora_inicio, :hora_fim, :paciente_nome, :paciente_email, :paciente_telefone, 'agendado', :token)";
             
             $stmtInsert = $this->db->prepare($sqlInsert);
             $stmtInsert->execute([
@@ -39,11 +40,12 @@ class Agendamento {
                 'hora_fim'          => $hora_fim,
                 'paciente_nome'     => $paciente_nome,
                 'paciente_email'    => $paciente_email,
-                'paciente_telefone' => $paciente_telefone
+                'paciente_telefone' => $paciente_telefone,
+                'token'             => $token
             ]);
 
             $this->db->commit();
-            return true;
+            return $token;
 
         } catch (\Exception $e) {
             $this->db->rollBack();
@@ -53,10 +55,8 @@ class Agendamento {
 
     public function getAgendamentosPorData($clinica_id, $data) {
         $sql = "SELECT a.id, a.hora_inicio, a.paciente_nome, a.paciente_email, a.paciente_telefone, a.status, m.nome as medico_nome
-                FROM agendamentos a
-                JOIN medicos m ON a.medico_id = m.id
-                WHERE m.clinica_id = :clinica_id AND a.data_consulta = :data
-                ORDER BY a.hora_inicio ASC";
+                FROM agendamentos a JOIN medicos m ON a.medico_id = m.id
+                WHERE m.clinica_id = :clinica_id AND a.data_consulta = :data ORDER BY a.hora_inicio ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['clinica_id' => $clinica_id, 'data' => $data]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -66,6 +66,23 @@ class Agendamento {
         $sql = "UPDATE agendamentos a JOIN medicos m ON a.medico_id = m.id SET a.status = :status WHERE a.id = :id AND m.clinica_id = :clinica_id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute(['status' => $novo_status, 'id' => $agendamento_id, 'clinica_id' => $clinica_id]);
+    }
+
+    // NOVA FUNÇÃO: Busca os detalhes da consulta usando o Token secreto
+    public function buscarPorToken($token) {
+        $sql = "SELECT a.id, a.data_consulta, a.hora_inicio, m.nome as medico_nome
+                FROM agendamentos a JOIN medicos m ON a.medico_id = m.id
+                WHERE a.token_cancelamento = :token AND a.status = 'agendado'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['token' => $token]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function cancelarPorToken($token) {
+        $sql = "UPDATE agendamentos SET status = 'cancelado' WHERE token_cancelamento = :token AND status = 'agendado'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['token' => $token]);
+        return $stmt->rowCount() > 0;
     }
 }
 ?>
